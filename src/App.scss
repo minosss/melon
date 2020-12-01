@@ -1,0 +1,69 @@
+@import './minireset.scss';
+
+.el-divider {
+	background: #faad14 !important;
+}
+
+#app {
+	font-family: Avenir, Helvetica, Arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	color: #20123b;
+}
+
+.preview {
+	background: transparent;
+
+	.clips {
+		position: absolute;
+		width: 0;
+		height: 0;
+	}
+
+	.preview-content {
+		// display: grid;
+	}
+}
+
+.toolbar {
+	z-index: 50;
+	position: fixed;
+	right: -15px;
+	top: calc(50vh - 132px / 2);
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+
+	.el-button {
+		margin: 0 !important;
+		margin-top: 4px !important;
+	}
+}
+
+.text-center {
+	text-align: center;
+}
+
+.relative {
+	position: relative;
+}
+
+.clip-none {
+	clip-path: none;
+}
+
+.clip-circle {
+	clip-path: url(#circle);
+}
+
+.clip-rect {
+	clip-path: url(#rect);
+}
+
+.clip-diamond {
+	clip-path: url(#diamond);
+}
+
+.clip-polygon {
+	clip-path: url(#polygon);
+}
