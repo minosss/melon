@@ -10,7 +10,14 @@
 			:class="{'block-image': true, [clipClass]: !!clipClass}"
 			:src="image"
 		/>
-		<span class="block-name">{{ name }}</span>
+		<el-input
+			ref="nameInput"
+			class="block-name-editor"
+			v-if="editName"
+			v-model="name"
+			@blur="onExitEditName"
+		/>
+		<span v-else class="block-name" @dblclick="tryEditName">{{ name }}</span>
 	</div>
 </template>
 
@@ -44,6 +51,7 @@ export default {
 			name: '',
 			// 1x1
 			image: 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==',
+			editName: false,
 		};
 	},
 	mounted() {
@@ -65,6 +73,15 @@ export default {
 				this.image = e.target.result;
 			};
 			reader.readAsDataURL(file);
+		},
+		tryEditName() {
+			this.editName = true;
+			this.$nextTick(() => {
+				this.$refs.nameInput.focus();
+			});
+		},
+		onExitEditName() {
+			this.editName = false;
 		},
 	},
 };
@@ -106,5 +123,14 @@ export default {
 	font-weight: 500;
 	margin: 0;
 	margin-top: 8px;
+}
+</style>
+
+<style lang="scss">
+.block-name-editor {
+	.el-input__inner {
+		text-align: center;
+		font-size: 20px;
+	}
 }
 </style>
