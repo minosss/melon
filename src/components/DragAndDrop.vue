@@ -1,14 +1,29 @@
 <template>
 	<div id="dragndrop" class="drag-and-drop" :class="{dragging: dragging}" @dragover.prevent>
-		<span class="tip">放手导入</span>
+		<span class="tip">放手导入，文件夹重新计算，文件追加</span>
 	</div>
 </template>
 
 <script>
+const sortData = (list) =>
+	list.filter(Boolean).sort((a, b) => {
+		let aName = parseInt(a.name.toUpperCase().match(/\d{1,}/));
+		let bName = parseInt(b.name.toUpperCase().match(/\d{1,}/));
+		console.log(aName, ' - ', bName);
+		if (aName < bName) {
+			return -1;
+		}
+		if (aName > bName) {
+			return 1;
+		}
+		return 0;
+	});
+
 export default {
 	mounted() {
 		let elms = new Set();
 		window.addEventListener('dragenter', (e) => {
+			if (e.dataTransfer.effectAllowed === 'move') return;
 			if (elms.size === 0) this.onDragEnter();
 			elms.add(e.target);
 		});
@@ -59,45 +74,34 @@ export default {
 			if (e.dataTransfer.items) {
 				// console.log(e.dataTransfer.items);
 				let items = Array.from(e.dataTransfer.items);
+				let nextList = [];
 				// convert to entry -webkit-
 				items = items.map((item) => item.webkitGetAsEntry());
 				const fileOnly = items.every((item) => item.isFile);
 
 				// 都是文件
 				if (fileOnly) {
-					const loadedEntries = await Promise.all(
-						items.map((item) => this.loadFileEntry(item))
-					);
-					console.log(`再加 ${loadedEntries.length} 张图片`);
-					this.$message.success(`再加 ${loadedEntries.length} 张图片`);
-					this.$emit('add', {data: loadedEntries});
+					nextList = await Promise.all(items.map((item) => this.loadFileEntry(item)));
+					nextList = sortData(nextList);
+					console.log(`再加 ${nextList.length} 张图片`);
+					this.$message.success(`再加 ${nextList.length} 张图片`);
+					this.$emit('add', {data: nextList});
 					return;
 				}
 
 				const firstDir = items.find((item) => item.isDirectory);
 				// 当前第一个文件夹
 				if (firstDir) {
-					let nextList = [];
 					let directoryReader = firstDir.createReader();
 					// 读取子文件
 					directoryReader.readEntries(async (entries) => {
 						nextList = await Promise.all(
 							entries.map((entry) => this.loadFileEntry(entry))
 						);
-						const sortedData = nextList.filter(Boolean).sort((a, b) => {
-							let aName = parseInt(a.name.toUpperCase().match(/\d{1,}/));
-							let bName = parseInt(b.name.toUpperCase().match(/\d{1,}/));
-							if (aName < bName) {
-								return -1;
-							}
-							if (aName > bName) {
-								return 1;
-							}
-							return 0;
-						});
-						console.log(`文件夹有 ${sortedData.length} 张图片`);
-						this.$message.success(`文件夹有 ${sortedData.length} 张图片`);
-						this.$emit('drop', {name: firstDir.name, data: sortedData});
+						nextList = sortData(nextList);
+						console.log(`文件夹有 ${nextList.length} 张图片`);
+						this.$message.success(`文件夹有 ${nextList.length} 张图片`);
+						this.$emit('drop', {name: firstDir.name, data: nextList});
 					});
 				}
 			}
