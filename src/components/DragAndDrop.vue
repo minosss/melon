@@ -1,19 +1,26 @@
 <template>
-	<div
-		id="dragndrop"
-		class="drag-and-drop"
-		:class="{dragging: dragging}"
-		@drop.prevent="onFolderDrop"
-		@dragover.prevent
-		@dragenter="onDragEnter"
-		@dragleave="onDragLeave"
-	>
+	<div id="dragndrop" class="drag-and-drop" :class="{dragging: dragging}" @dragover.prevent>
 		<span class="tip">放手导入</span>
 	</div>
 </template>
 
 <script>
 export default {
+	mounted() {
+		let elms = new Set();
+		window.addEventListener('dragenter', (e) => {
+			if (elms.size === 0) this.onDragEnter();
+			elms.add(e.target);
+		});
+		window.addEventListener('drop', (e) => {
+			elms.delete(e.target);
+			this.onFolderDrop(e);
+		});
+		window.addEventListener('dragleave', (e) => {
+			elms.delete(e.target);
+			if (elms.size === 0) this.onDragLeave();
+		});
+	},
 	data: function () {
 		return {
 			dragging: false,
@@ -46,6 +53,8 @@ export default {
 			});
 		},
 		async onFolderDrop(e) {
+			e.preventDefault();
+
 			this.dragging = false;
 			if (e.dataTransfer.items) {
 				// console.log(e.dataTransfer.items);
@@ -100,21 +109,20 @@ export default {
 <style lang="scss" scoped>
 .drag-and-drop {
 	background: transparent;
-	position: absolute;
+	position: fixed;
 	left: 0;
 	right: 0;
 	top: 0;
 	bottom: 0;
 
-	display: flex;
+	display: none;
 	align-items: center;
 	justify-content: center;
 
-	.tip {
-		display: none;
-	}
+	// .tip {}
 
 	&.dragging {
+		display: flex;
 		z-index: 100;
 		background: #fff;
 		opacity: 0.8;
